@@ -20,24 +20,30 @@ http.createServer(function(req,res){
 		form.parse(req,function(err,fields,files){
 			var oldpath = files.filetoupload.path;
 			var newpath = './uploaded_files/' + files.filetoupload.name;
-			fs.rename(oldpath,newpath,async function(err){
-				try{
-					if (err) throw err;
-					res.writeHead(200,{'Content-Type':'text/html'});
-					res.write('File successfully uploaded!');
-					await sleep(4000);
-					var myScript = `<script type = "text/javascript">
-            							function Redirect() {
-               							window.location = "http://`+req.headers.host+`";
-            							}            
-            							Redirect();
-      								</script>`;
-					res.write(myScript);
-					res.end();
-				} catch(err){
-					console.log(err);
-				}
-			})
+            try{
+                fs.readFile(oldpath, function (err, data2) {
+                    if (err) throw err;
+                    fs.writeFile(newpath, data2, async function (err) {
+                        if (err) throw err;
+                        res.writeHead(200,{'Content-Type':'text/html'});
+                        res.write('File successfully uploaded!');
+                        await sleep(4000);
+                        var myScript = `<script type = "text/javascript">
+                                            function Redirect() {
+                                            window.location = "http://`+req.headers.host+`";
+                                            }            
+                                            Redirect();
+                                        </script>`;
+                        res.write(myScript);
+                        res.end();
+                    });
+                    fs.unlink(oldpath, function (err) {
+                        if (err) throw err;
+                    });
+                });
+            }catch (err) {
+                console.log(err);
+            }
 		});
 	} else {
 		show_page(res);
