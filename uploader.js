@@ -6,12 +6,36 @@ function sleep(ms){
 	return new Promise(func => setTimeout(func,ms));
 }
 
-function show_page(res){
-	fs.readFile('form.html',function(err,data){
-			res.writeHead(200,{'Content-Type':'text/html'});
-			res.write(data);
-			res.end();
-		});
+function show_page(res, req){
+    var res_name = req.url.slice(1);
+    if(res_name == '')
+    {
+        res_name = "index.html";
+    }
+    fs.readFile(res_name,function(err404,data){
+        try{
+            if (err404) throw err404;
+        
+            res.writeHead(200,{'Content-Type':'text/html'});
+            res.write(data);
+            res.end();
+        } catch (err404) {
+            res.writeHead(404,{'Content-Type':'text/html'});
+            res.write('<center><h1> Error 404 !!! <br/> Resource Not Found </h1></center>');
+            res.end();
+        }
+    });
+}
+
+function redir(res,url){
+    var myScript = `<script type = "text/javascript">
+                        function Redirect() {
+                        window.location = "`+url+`";
+                        };            
+                        Redirect();
+                    </script>`;
+    res.write(myScript);
+    res.end();
 }
 
 http.createServer(function(req,res){
@@ -28,14 +52,7 @@ http.createServer(function(req,res){
                         res.writeHead(200,{'Content-Type':'text/html'});
                         res.write('File successfully uploaded!');
                         await sleep(4000);
-                        var myScript = `<script type = "text/javascript">
-                                            function Redirect() {
-                                            window.location = "http://`+req.headers.host+`";
-                                            }            
-                                            Redirect();
-                                        </script>`;
-                        res.write(myScript);
-                        res.end();
+                        redir(res, "http://"+req.headers.host+"/form.html");
                     });
                     fs.unlink(oldpath, function (err) {
                         if (err) throw err;
@@ -45,7 +62,12 @@ http.createServer(function(req,res){
                 console.log(err);
             }
 		});
-	} else {
-		show_page(res);
+    } 
+    else if (req.url == "/redir"){
+        res.writeHead(200,{'Content-Type':'text/html'});
+        redir(res,"http://google.com");
+    }
+    else {
+		show_page(res, req);
 	}
 }).listen(8080);
