@@ -19,10 +19,12 @@ function show_page(res, req){
             res.writeHead(200,{'Content-Type':'text/html'});
             res.write(data);
             res.end();
+            console.log(res_name + ' served!');
         } catch (err404) {
             res.writeHead(404,{'Content-Type':'text/html'});
             res.write('<center><h1> Error 404 !!! <br/> Resource Not Found </h1></center>');
             res.end();
+            console.log(res_name + ' not found in the server!');
         }
     });
 }
@@ -51,6 +53,7 @@ http.createServer(function(req,res){
                         if (err) throw err;
                         res.writeHead(200,{'Content-Type':'text/html'});
                         res.write('File successfully uploaded!');
+                        console.log("File uploaded to the server! Now redirecting...")
                         await sleep(4000);
                         redir(res, "http://"+req.headers.host+"/form.html");
                     });
@@ -63,10 +66,10 @@ http.createServer(function(req,res){
             }
 		});
     } 
-    else if (req.url == "/redir"){
-        res.writeHead(200,{'Content-Type':'text/html'});
-        redir(res,"http://google.com");
-    }
+    //else if (req.url == "/redir"){
+    //    res.writeHead(200,{'Content-Type':'text/html'});
+    //    redir(res,"http://google.com");
+    //}
     else {
 		show_page(res, req);
 	}
